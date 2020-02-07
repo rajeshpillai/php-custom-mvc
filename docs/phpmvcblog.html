@@ -1,0 +1,280 @@
+<html
+<head><title>Create your own MVC framework - Part 1</title></head>
+<body>
+
+<h2>Create your own MVC framework with a real application in action - Part 1</h2>
+
+<img src="images/preview.jpg" alt="name of tut" width="200" height="200"/>
+
+<p>In this series of tutorials we will build a minimal MVC framework from scratch and also a develop working blog engine based
+on the concepts learned.</p>
+
+<!--more-->
+
+<hr />
+<h2>Tutorial Details</h2>
+<ul>
+	<li><b>Program</b>: Create your own MVC framework with a real world application in action</li>
+	<li><b>Difficulty:</b>Intermediate </li>
+	<li><b>Estimated Completion Time: 1 hour</b> </li>
+</ul>
+
+<hr />
+
+<h2>Introduction and motivation</h2>
+
+<p>I am very excited as this is my first article at nettuts and in this series of posts we will build a minimal MVC framework using Object oriented features of PHP
+and build a real blog application.   The series will be spanned across 3 or 4 articles. If you follow along with me in this article by the 
+time you reach the end of the series we will have a live blogging application deployed.  This will not be as feature rich as wordpress
+but minimal enough to enforce the concepts learned during our stay here. The brief summary of contents
+is outlined below for reference.
+</p>
+
+<h2>Whats covered in this article?</h2>
+<ol>
+	<li><a href="#">Introduction to MVC</a></li>
+	<li><a href="#">The Folder Structure</a></li>
+	<li><a href="#">Convention over Configuration</a></li>
+	<li><a href="#">The Front Controller (aka index.php)</a></li>
+	<li><a href="#">The Routing System</a></li>
+	<li><a href="#">The Dispatcher</a></li>
+	<li><a href="#">Designing a Controller</a></li>
+	
+</ol>
+
+<h2>Introduction to MVC </h2>
+
+<p>
+MVC (Model View Controller) is one of the oldest presentation pattern available to the developers.  It has mostly been popularized by the Ruby On
+Rails framework and later being adopted by many other vendors including PHP (CakePhp) and ASP.NET MVC and much more.
+</p>
+
+
+<div class="tutorial_image">
+	<img src="images/mvc.png" border="0" alt="" />
+</div>
+
+<hr/>
+
+<p>
+The crux of MVC is the CONTROLLER which handles all the request to any PHP files.  The CONTROLLER is the entry point to the system and is responsible for interacting
+with the MODEL and loading the appropriate VIEW.
+</p>
+<p>
+The relation between VIEW and the MODEL is very thin as the MODEL is passed to the VIEW by the CONTROLLER.
+</p>
+
+<blockquote>
+<p>"If you will be following along with me in this article series, just for information I am using  NetBeans IDE for my PHP development.  I highly
+recommend this and its also opensource and available for free."</p></blockquote>	
+
+<hr />
+<h2>The Folder Structure</h2>
+<p>
+The folder structure for our application is shown in the below figure.
+</p>
+
+<div class="tutorial_image">
+	<img src="images/folder_structure.png" border="0" alt="" />
+</div>
+
+<p>
+Before proceeding further let's quickly glance over the folder structure.  This is a very early draft and may change as we 
+proceed in this series.	
+</p>
+
+<ul>
+	<li>app&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    -> Houses the core of the application including models, views and controllers</li>
+	<li>config&nbsp;&nbsp -> Houses the configuration, constants and includes</li>
+	<li>helpers -> Houses helper functions related to the core system functionalities</li>
+	<li>public&nbsp;&nbsp; -> Houses images, javascripts and themes</li>	
+</ul>
+<hr/>
+
+<h2>Convention over Configuration</h2>
+<p>There are couple of conventions which if we understand will ease application development.  </p>
+
+<ul>
+<li>All application CONTROLLERS will derive from AppController which in turn will be derived from ControllerBase class</li>
+<li>All model will derive from Model class</li>  
+<li>The views are plain old PHP file</li>  
+<li>The Controller file names will be postfixed with "Controller"</li>  
+<li>The default action if not specified will be "index".  We will have a detailed look at routing and other 
+	related things as we go forward</li>
+</ul>
+
+<h2>The Front Controller (aka index.php)</h2>
+<p>Without any more further ado lets get straight to THE FRONT CONTROLLER.  The FRONT CONTROLLER is the gateway to the
+application.  All requests except (images, css, javascripts) passes through this.  We will have a look at how to set this up in the later part of the article.
+</p>
+
+<p>Create a index.php file in the root folder of your application and copy the following code into it.  It will set up the
+front controller for the application.
+</p>
+
+<pre name="code" class="php">
+
+&lt;?php
+    session_start();
+
+    require_once('config/includes.php');
+    require_once('config/routes.php');
+    require_once('dispatcher.php');
+
+    Dispatcher::dispatch($_SERVER['REQUEST_URI']);
+?&gt;
+
+</pre>
+
+<h2>Explanation of index.php</h2>
+<p>The index.php does the following things</p>
+<ul>
+	<li>Sets up the session</li>
+	<li>Includes the essential configuration files</li>
+	<li>Routes the request to the dispatcher.</li>
+</ul>
+
+<p>The Dispatcher::dispatch is a static method which takes the request URL as the input parameter
+and routes the request to the appropriate action on the correct controller.
+</p>
+
+<p>We will be covering the dispatcher in the subsequent sections after going through the routing system.
+</p>
+
+<h2>The Routing System: The heart of MVC</h2>
+
+<p>
+Routing lies at the heart of the MVC system.  The first thing to setup is the .htaccess file.
+</p>
+
+<pre name="code" class="php">
+RewriteEngine On
+RewriteRule !(\.gif|\.png|\.jpe?g|\.css|\.js|\.php|^public/.*)$ index.php [nocase,last]
+</pre>
+
+
+The first line RewriteEngine On enable URL rewriting to work on apache. 
+
+The second line is the RewriteRule which specifies for any request other than gif, png, jpeg/jpg, css, js, php or 
+any request that starts with public should be redirected to index.php page.
+
+
+Most of the webserver that has apached installed support the use of .htaccess files.  
+
+<p>
+For detailed information on .htaccess file do refer the docs at 
+
+<a href="http://httpd.apache.org/docs/1.3/howto/htaccess.html" target="_blank" title="New Window">htaccess Guide</a>.
+
+
+Apache rewrite guide can be found here 
+
+<a href="http://httpd.apache.org/docs/2.0/misc/rewriteguide.html" target="_blank" title="New Window">Rewrite Guide</a>.
+
+A more detailed introduction to mod_rewrite can be found on the following nettuts article
+ <a href=" http://net.tutsplus.com/tutorials/other/a-deeper-look-at-mod_rewrite-for-apache/" target="_blank" title="An In Depth Guide to mod_rewrite for Apache ">An In Depth Guide to mod_rewrite for Apache </a>
+
+</p>
+
+<p>
+Enable apache mod_rewrite module.  You can do this by opening the apache config file and uncommenting or adding 
+(if not aleady exist) the following entry.
+</p>
+
+<pre name="code" class="text">
+LoadModule rewrite_module modules/mod_rewrite.so
+</pre>
+
+<p>
+Alternatively if you are on windows and have WAMP installed, click on the WAMP server->Apache->Apache modules->rewrite_module option.
+</p>
+
+<h2>The Routing Table</h2>
+<p>
+The routing table is an array which holds the regex pattern for identifying controllers, actions and request parameters.
+
+</p>
+
+<div class="tutorial_image">
+	<img src="images/route_table.png" border="0" alt="" />
+</div>
+
+<p>The code to setup the routes is in the /config/routes.php.  The routes are defined from specific to general.
+</p>
+
+<h2>Routes.php Explained</h2>
+<p>The first route entry and the routes.php class is hown below (partial).  The routes are not yet very fool proof at this moment, but we will
+get there before we conclude the series.
+</p>
+
+<pre name="code" class="php">
+&lt;?php
+class Routes
+{
+    public static $routes = array(
+            // "/controller/id/action"
+            array('url' => '/^(?P<controller>[a-zA-Z]\w+)\/(?P&lt;id&gt;\d+)\/(?P&lt;action&gt;[a-zA-Z]\w+)$/',
+                              'name'=>'default1',
+                              'controller'=>'master',
+                              'action'=>'index');
+}                       
+?&gt;
+</pre>
+
+<p>We begin by creating a Routes class and declaring a static $routes array.  $routes holds all the regex patterns
+for matching routes.  We won't be going into the details of all the route regex, except this one and rest will be easy to follow.
+</p>
+
+<p>
+The above route serves the request with the incoming URL /controller/id/action format.  For e.g. for our future blogging system 
+this will map to <b>/home/1/show</b>  URL where <b>"home"</b> maps to HomeController, <b>"1"</b> maps to $id = 1 and
+<b>"show"</b> maps to the action "show" on the HomeController.
+</p>
+
+<h2>Dissecting the "/controller/id/action" route </h2>
+<p>Each element of the above regex is explained below.
+</p>
+
+<h2>Capture "controller" name </h2>
+<ul>
+	<li>/  Begin regex expression.  In PHP regex are enclosed between /&lt;regex&gt;/</li>
+	<li>^  Starts with </li>
+	<li>(?P&lt;controller&gt;[a-zA-Z]\w+)  Start named group with the name "controller". Match all word characters 
+		The closing parenthesis ")" marks the end of named group.</li>
+</ul>
+
+<p>The above pattern captures the controller text and stores it in the "controller" named group.
+</p>
+
+
+<h2>Capture the request parameter </h2>
+<ul>
+	<li>/ match the leading "/" in front of the parameter</li>
+	<li>(?P&lt;id&gt;\d+) Captures the id in the named group "id".</li>
+</ul>
+
+<p>The above pattern captures the request parameter and  stores it in the named group "id".
+</p>
+
+<h2>Capture the action </h2>
+<ul>
+	<li>/ match the leading "/" in front of the action name</li>
+	<li>(?P&lt;action&gt;[a-zA-Z]\w+)$/ Captures the action parameter in the named group "action".</li>
+</ul>
+
+<p>The above pattern captures the action parameter and  stores it in the  named group "action".
+</p>
+
+<h2>The Dispatcher</h2>
+
+<p>The dispatcher does all the grunt work of parsing the incoming request and then instantiation the correct conroller
+and invoking the action passing in the required parameters.
+
+</p>
+
+
+</body>
+</html>
+
+</body>
+</html>
